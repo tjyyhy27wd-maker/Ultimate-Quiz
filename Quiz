@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Frisbee Rules Quiz (WFDF 2025-2028)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: var(--light);
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary-light);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+
+        .option-item {
+            background-color: var(--light);
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+
+        .option-item:hover {
+            background-color: #e5e7eb;
+            border-color: var(--primary-light);
+        }
+
+        .option-item.correct {
+            background-color: #d1fae5;
+            border-color: var(--secondary);
+            color: #065f46;
+        }
+
+        .option-item.incorrect {
+            background-color: #fee2e2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .feedback.correct-bg {
+            background-color: #ecfdf5;
+            color: #047857;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .feedback.incorrect-bg {
+            background-color: #fff5f5;
+            color: #b91c1c;
+            border-left: 4px solid var(--danger);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-light);
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .term-highlight {
+            font-style: italic;
+            color: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-header">
+        <h1>Ultimate Frisbee Rules Quiz <br><small style="font-size:14px; color:#6b7280;">Reglas Oficiales WFDF 2025-2028</small></h1>
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+    </div>
+
+    <div id="question-box">
+        <div id="question-text" class="question">Cargando pregunta...</div>
+        <ul id="options-container" class="options-list"></ul>
+        <div id="feedback-box" class="feedback"></div>
+        <button id="next-btn" class="btn" style="display: none;">Siguiente Pregunta</button>
+    </div>
+
+    <div id="result-box" class="result-screen">
+        <h2>¡Quiz Completado!</h2>
+        <p>Tu puntuación es de:</p>
+        <div id="final-score" class="score">0 / 5</div>
+        <p id="result-comment"></p>
+        <button onclick="restartQuiz()" class="btn">Volver a intentar</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "Según las nuevas reglas, si realizas un <span class='term-highlight'>time-out</span> después del <span class='term-highlight'>pull</span> durante el juego regular, ¿en qué número se reinicia el <span class='term-highlight'>stall count</span>?",
+            options: [
+                "En 'Stalling one (1)'",
+                "En el número en el que estaba en el momento del time-out",
+                "Al máximo de 'Stalling nine (9)'",
+                "Se resetea a 'Stalling six (6)'"
+            ],
+            correct: 2,
+            explanation: "Regla 20.3.6: Tras un time-out después del pull, el stall count se reinicia como máximo en nueve (9). Sin embargo, si el marker ha cambiado, se reinicia en uno (1)."
+        },
+        {
+            question: "Si el disco lanzado en el <span class='term-highlight'>pull</span> hace contacto con el área de <span class='term-highlight'>out-of-bounds</span> sin haber tocado antes el campo de juego ni a ningún jugador atacante, el ataque puede cantar:",
+            options: [
+                "Un 'Travel' e iniciar desde el centro del campo.",
+                "Un 'Brick' y elegir empezar en la marca de brick o en la línea de banda.",
+                "Un 'Violation' y repetir el pull.",
+                "Un 'Turnover' automático."
+            ],
+            correct: 1,
+            explanation: "Regla 7.12: Si el pull cae directamente fuera, el thrower puede establecer el pivot en la marca de brick más cercana o en la zona central donde salió. Se señaliza extendiendo un brazo sobre la cabeza y llamando 'brick'."
+        },
+        {
+            question: "¿Cómo se denomina la infracción de marcaje (<span class='term-highlight'>Marking Infraction</span>) en la que un defensa utiliza intencionadamente su cuerpo para obstruir la visión del <span class='term-highlight'>thrower</span>?",
+            options: [
+                "Disc Space",
+                "Wrapping",
+                "Double Team",
+                "Vision"
+            ],
+            correct: 3,
+            explanation: "Regla 18.1.1.6: La infracción se llama 'Vision' cuando un jugador defensivo usa cualquier parte de su cuerpo para obstruir intencionadamente la visión del thrower."
+        },
+        {
+            question: "Si un receptor atacante está en proceso de atrapar el disco y un defensa le hace falta provocando que acabe atrapándolo en <span class='term-highlight'>out-of-bounds</span> en lugar de dentro del campo, ¿qué se ha cometido?",
+            options: [
+                "Un 'Strip Foul'",
+                "Un 'Force-out Foul'",
+                "Un 'Blocking Foul'",
+                "Un 'Indirect Foul'"
+            ],
+            correct: 1,
+            explanation: "Regla 17.5.1: Se trata de un 'Force-out Foul'. Si el receptor habría atrapado el disco en su end zone de ataque bajo estas condiciones, se concede un 'goal' de manera directa."
+        },
+        {
+            question: "¿Cuál es el tiempo límite exacto que tiene el ataque para establecer el punto de <span class='term-highlight'>pivot</span> si el disco queda muerto dentro de su propia <span class='term-highlight'>end zone</span> tras un <span class='term-highlight'>turnover</span>?",
+            options: [
+                "10 segundos desde que el disco se detiene.",
+                "15 segundos desde que el disco se detiene.",
+                "20 segundos desde que el disco se detiene.",
+                "No hay límite mientras se mueva a paso de caminar."
+            ],
+            correct: 2,
+            explanation: "Regla 8.5.1.2: El thrower debe establecer el pivot point dentro de un límite de veinte (20) segundos si el disco se detiene en una end zone (en la zona central el límite es de 10 segundos)."
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let hasAnswered = false;
+
+    const questionTextEl = document.getElementById("question-text");
+    const optionsContainerEl = document.getElementById("options-container");
+    const feedbackBoxEl = document.getElementById("feedback-box");
+    const nextBtnEl = document.getElementById("next-btn");
+    const progressEl = document.getElementById("progress");
+    const resultBoxEl = document.getElementById("result-box");
+    const questionBoxEl = document.getElementById("question-box");
+    const quizHeaderEl = document.getElementById("quiz-header");
+    const finalScoreEl = document.getElementById("final-score");
+    const resultCommentEl = document.getElementById("result-comment");
+
+    function loadQuestion() {
+        hasAnswered = false;
+        feedbackBoxEl.style.display = "none";
+        nextBtnEl.style.style = "none";
+        nextBtnEl.style.display = "none";
+        optionsContainerEl.innerHTML = "";
+
+        // Actualizar barra de progreso
+        const progressPercent = (currentQuestion / quizData.length) * 100;
+        progressEl.style.width = `${progressPercent}%`;
+
+        const currentQuiz = quizData[currentQuestion];
+        questionTextEl.innerHTML = `${currentQuestion + 1}. ${currentQuiz.question}`;
+
+        currentQuiz.options.forEach((option, index) => {
+            const li = document.createElement("li");
+            li.classList.add("option-item");
+            li.innerText = option;
+            li.addEventListener("click", () => selectOption(index, li));
+            optionsContainerEl.appendChild(li);
+        });
+    }
+
+    function selectOption(selectedIndex, clickedEl) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+
+        const currentQuiz = quizData[currentQuestion];
+        const optionsEls = optionsContainerEl.querySelectorAll(".option-item");
+
+        if (selectedIndex === currentQuiz.correct) {
+            clickedEl.classList.add("correct");
+            score++;
+            feedbackBoxEl.className = "feedback correct-bg";
+            feedbackBoxEl.innerHTML = `<strong>¡Correcto!</strong> ${currentQuiz.explanation}`;
+        } else {
+            clickedEl.classList.add("incorrect");
+            optionsEls[currentQuiz.correct].classList.add("correct");
+            feedbackBoxEl.className = "feedback incorrect-bg";
+            feedbackBoxEl.innerHTML = `<strong>Incorrecto.</strong> ${currentQuiz.explanation}`;
+        }
+
+        feedbackBoxEl.style.display = "block";
+        nextBtnEl.style.display = "block";
+    }
+
+    nextBtnEl.addEventListener("click", () => {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    function showResults() {
+        questionBoxEl.style.display = "none";
+        quizHeaderEl.style.display = "none";
+        resultBoxEl.style.display = "block";
+        finalScoreEl.innerText = `${score} / ${quizData.length}`;
+
+        if (score === quizData.length) {
+            resultCommentEl.innerText = "¡Perfecto! Te conoces las reglas de la WFDF al dedillo. ¡Listo para capitanear el próximo torneo!";
+        } else if (score >= 3) {
+            resultCommentEl.innerText = "¡Buen trabajo! Tienes una base sólida, repasa los pequeños detalles con el equipo para evitar discusiones en el campo.";
+        } else {
+            resultCommentEl.innerText = "Buen intento, pero necesitas repasar el reglamento oficial para asegurar ese Spirit of the Game impecable.";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        questionBoxEl.style.display = "block";
+        quizHeaderEl.style.display = "block";
+        resultBoxEl.style.display = "none";
+        loadQuestion();
+    }
+
+    // Iniciar la app al cargar
+    loadQuestion();
+</script>
+
+</body>
+</html>
